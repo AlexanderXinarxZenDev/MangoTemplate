@@ -1,164 +1,491 @@
-# 🥭 MangoTemplate v1
+# MangoTemplate 🥭
 
-**A minimal HTML template engine for Go** – variable interpolation only, zero dependencies, designed for micro‑frameworks like Flusk.
+A powerful, PHP-like templating engine for Go that brings familiar web templating paradigms to the Go ecosystem.
 
----
-
-## ✨ Features
-
-- 🍃 **Simple variable replacement** – `{{ key }}` → value from a `map[string]any`
-- 📁 **File‑based rendering** – load HTML templates from disk
-- 🚀 **Zero dependencies** – pure Go standard library
-- 🔌 **Embeddable** – perfect for lightweight web frameworks
-- 🧹 **Minimal & readable** – under 150 lines of code
-- 📦 **MIT Licensed** – use anywhere
+[![Go Version](https://img.shields.io/badge/Go-1.16%2B-blue)](https://golang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Active-brightgreen)]()
 
 ---
 
-## 📦 Installation
+## 🎯 What is MangoTemplate?
 
-```bash
-go get github.com/AlexanderXinarxZenDev/mango
-```
-
-Or manually add to your project.
-
----
-
-## 🚀 Quick start
-
-### 1. Create a template file (`index.html`)
+MangoTemplate is a templating library for Go that supports `.mango` and `.html` files with **PHP-like syntax**. It allows you to embed Go code directly in your templates using `<go>` tags, making it feel natural for developers coming from dynamic web languages.
 
 ```html
-<h1>{{ title }}</h1>
-<p>{{ message }}</p>
-<span>{{ missing_key }}</span>
+<!-- MangoTemplate .mango file -->
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Hello, <go>Name</go>!</h1>
+    
+    <go if="User.IsAdmin">
+        <p>Welcome Administrator</p>
+    </go>
+    
+    <ul>
+        <go for="item" in="Items">
+            <li><go>item.Name</go> - $<go>item.Price</go></li>
+        </go>
+    </ul>
+</body>
+</html>
 ```
 
-### 2. Render in Go
+---
+
+## ✨ Key Features
+
+- ✅ **PHP-like Syntax**: Familiar to web developers
+- ✅ **`<go>` Tags**: Embed Go code directly in templates
+- ✅ **50+ Built-in Functions**: String, math, date, array operations
+- ✅ **Smart Caching**: Automatic template caching for performance
+- ✅ **Layouts & Includes**: Template composition and inheritance
+- ✅ **Custom Functions**: Register your own template functions
+- ✅ **Error Friendly**: Clear error messages for debugging
+- ✅ **Debug Mode**: Enhanced logging during development
+- ✅ **Type Safe**: Full Go type support
+- ✅ **Web Ready**: Perfect for HTTP servers
+
+---
+
+## 🚀 Quick Start
+
+### 1. Install
+
+```bash
+go get github.com/AlexanderXinaxrZenDev/mangotemplate
+```
+
+### 2. Create a Template
+
+**templates/index.mango**
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title><go>Title</go></title>
+</head>
+<body>
+    <h1>Welcome, <go upper="Name"></go>!</h1>
+</body>
+</html>
+```
+
+### 3. Use in Go
 
 ```go
 package main
 
 import (
-    "fmt"
-    "log"
-    "github.com/AlexanderXinarxZenDev/mango_template"
+	"fmt"
+	"github.com/AlexanderXinaxrZenDev/mangotemplate"
 )
 
 func main() {
-    data := map[string]any{
-        "title":   "Flusk App",
-        "message": "Hello MangoTemplate",
-    }
+	engine := mangotemplate.NewEngine("./templates")
+	engine.RegisterBuiltinFunctions()
 
-    result, err := mango.Render("index.html", data)
-    if err != nil {
-        log.Fatal(err)
-    }
+	data := map[string]interface{}{
+		"Title": "Home",
+		"Name":  "alice",
+	}
 
-    fmt.Println(result)
+	result, _ := engine.Render("index.mango", data)
+	fmt.Println(result)
 }
 ```
 
-### 3. Output
+### Output
 
 ```html
-<h1>Flusk App</h1>
-<p>Hello MangoTemplate</p>
-<span></span>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Home</title>
+</head>
+<body>
+    <h1>Welcome, ALICE!</h1>
+</body>
+</html>
 ```
 
-> **Note:** Missing keys become empty strings – no errors, just silence.
+---
+
+## 📚 Syntax Overview
+
+### Variables
+
+```html
+<go>VariableName</go>              <!-- Output variable -->
+<go>User.Name</go>                  <!-- Nested access -->
+<go>User.Address.City</go>          <!-- Deep nesting -->
+```
+
+### Functions
+
+```html
+<go upper="name"></go>              <!-- UPPERCASE -->
+<go lower="name"></go>              <!-- lowercase -->
+<go title="name"></go>              <!-- Title Case -->
+<go truncate="text" 50></go>        <!-- Truncate -->
+<go date="timestamp"></go>          <!-- Format date -->
+<go length="items"></go>            <!-- Array length -->
+```
+
+### Conditionals
+
+```html
+<go if="Condition">
+    Content if true
+</go>
+
+<go if="User.IsAdmin">
+    Admin area
+</go>
+<go else>
+    User area
+</go>
+```
+
+### Loops
+
+```html
+<go for="item" in="Items">
+    <div>
+        <h3><go>item.Name</go></h3>
+        <p>$<go>item.Price</go></p>
+    </div>
+</go>
+
+<!-- Nested loops -->
+<go for="category" in="Categories">
+    <h2><go>category.Name</go></h2>
+    <go for="product" in="category.Products">
+        <span><go>product.Name</go></span>
+    </go>
+</go>
+```
 
 ---
 
-## 📚 API
+## 🛠️ Built-in Functions (50+)
 
-### `Render(filePath string, data map[string]any) (string, error)`
+### String Functions
+- `upper`, `lower`, `title`, `capitalize`
+- `reverse`, `truncate`, `slug`
+- `contains`, `replace`, `split`, `join`
+- `trim`, `strlen`, `substr`
 
-Reads an HTML file, replaces all `{{ key }}` placeholders, and returns the rendered string.
+### Math Functions
+- `add`, `subtract`, `multiply`, `divide`, `mod`
+- `min`, `max`, `abs`
 
-- If a key exists in `data`, its value is converted to a string and inserted.
-- If a key does **not** exist, it is replaced with an empty string.
-- Malformed placeholders (e.g., `{{ key }` or `{{key` ) are left untouched.
+### Date/Time Functions
+- `date`, `time`, `datetime`, `unix`, `now`
+
+### Array Functions
+- `first`, `last`, `length`, `range`
+
+### Conditional Functions
+- `default`, `empty`, `eq`, `ne`, `lt`, `gt`, `lte`, `gte`
+
+### Type Conversion
+- `int`, `float`, `string`, `bool`, `type`
+
+### Security
+- `escape`, `unescape`, `safe`, `md5`, `hash`, `urlencode`
 
 ---
 
-## 🔗 Integration with Flusk
+## 📖 Examples
 
-MangoTemplate is designed to work seamlessly with the [Flusk](https://github.com/AlexanderXinarxZenDev/flusk) web framework:
+### Blog Post Template
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title><go>post.Title</go></title>
+</head>
+<body>
+    <article>
+        <h1><go>post.Title</go></h1>
+        <p class="meta">
+            By <go>post.Author</go> on <go date="post.PublishedDate"></go>
+        </p>
+        <div class="content">
+            <go>post.Content</go>
+        </div>
+        <footer>
+            Tags:
+            <go for="tag" in="post.Tags">
+                <a href="/tags/<go slug="tag"></go>"><go>tag</go></a>
+            </go>
+        </footer>
+    </article>
+</body>
+</html>
+```
+
+### E-commerce Product Page
+
+```html
+<div class="product">
+    <h2><go>product.Name</go></h2>
+    <p><go>product.Description</go></p>
+    
+    <div class="price">
+        <go if="product.OnSale">
+            <span class="sale">$<go>product.SalePrice</go></span>
+            <span class="original">$<go>product.Price</go></span>
+        </go>
+        <go else>
+            $<go>product.Price</go>
+        </go>
+    </div>
+
+    <go if="product.InStock">
+        <button>Add to Cart</button>
+    </go>
+    <go else>
+        <p>Out of Stock</p>
+    </go>
+</div>
+```
+
+### Dashboard with Conditionals
+
+```html
+<h1>Welcome, <go>user.Name</go>!</h1>
+
+<go if="user.Premium">
+    <span class="badge">Premium Member</span>
+</go>
+
+<div class="orders">
+    <h2>Your Orders</h2>
+    <go if="empty user.Orders">
+        <p>You haven't placed any orders yet.</p>
+    </go>
+    <go else>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Total</th>
+            </tr>
+            <go for="order" in="user.Orders">
+                <tr>
+                    <td><go>order.ID</go></td>
+                    <td><go date="order.Date"></go></td>
+                    <td>$<go>order.Total</go></td>
+                </tr>
+            </go>
+        </table>
+    </go>
+</div>
+```
+
+---
+
+## 🔧 API Reference
+
+### Creating Engine
 
 ```go
-// Flusk context extension
-func (c *Context) HTML(status int, file string, data map[string]any) {
-    rendered, err := mango.Render(file, data)
-    if err != nil {
-        c.Text(500, err.Error())
-        return
-    }
-    c.Writer.Header().Set("Content-Type", "text/html")
-    c.Writer.WriteHeader(status)
-    c.Writer.Write([]byte(rendered))
-}
+engine := mangotemplate.NewEngine("./templates")
+engine.RegisterBuiltinFunctions()
+```
 
-// Usage
-app.GET("/", func(c *flusk.Context) {
-    c.HTML(200, "index.html", map[string]any{
-        "title": "Home",
-    })
+### Rendering
+
+```go
+// Render template from file
+result, err := engine.Render("index.mango", data)
+
+// Render from string
+result, err := engine.RenderString(templateContent, data)
+
+// Render with layout
+result, err := engine.RenderLayout("layout.mango", "page.mango", data)
+```
+
+### Custom Functions
+
+```go
+engine.RegisterFunc("discount", func(price, percent float64) float64 {
+    return price * (1 - percent/100)
 })
+
+// Usage: {{ discount .price 20 }}
+```
+
+### Configuration
+
+```go
+engine.SetTemplateDir("./new_dir")
+engine.SetDelimiters("{{", "}}")
+engine.EnableDebug()
+engine.DisableDebug()
+```
+
+### Cache Management
+
+```go
+engine.ClearCache()                    // Clear all
+engine.ClearCacheFile("index.mango")   // Clear one
+stats := engine.GetCacheStats()        // Get statistics
 ```
 
 ---
 
-## 🧠 Design philosophy
+## 💡 Use Cases
 
-- **Minimalism first** – no loops, conditionals, or complex parsing in v1.
-- **Explicit over magical** – you see exactly what the engine does.
-- **Framework‑friendly** – small enough to embed, predictable enough to trust.
-- **Ready to evolve** – the simple parser can be extended later (include files, functions) without breaking existing templates.
+- 🌐 **Web Applications**: Full-stack Go web apps
+- 📧 **Email Templates**: HTML emails with dynamic content
+- 📄 **Document Generation**: HTML/PDF reports
+- 🎨 **Static Site Generators**: Dynamic HTML generation
+- 📱 **API Response Templates**: Format API responses
+- 🔔 **Notification Templates**: SMS/Push notifications
+- 📊 **Dashboard Templates**: Admin panels
+- 🎯 **Landing Pages**: Marketing pages
 
 ---
 
-## 📁 Project structure
+## 📊 Performance
+
+- **Automatic Caching**: Templates cached after first render
+- **Zero Dependencies**: Pure Go implementation
+- **Fast Parsing**: Efficient regex-based parser
+- **Minimal Overhead**: Leverages Go's `text/template`
+
+---
+
+## 🛡️ Security
+
+- **HTML Escaping**: Automatic escaping of output
+- `escape` / `unescape` functions for control
+- `safe` function for trusted content
+- No code injection vulnerabilities
+- Type-safe Go integration
+
+---
+
+## 📦 File Structure
 
 ```
-mango/
-├── render.go       # Public Render function
-├── parser.go       # Placeholder replacement logic
-└── go.mod
+mangotemplate/
+├── mangotemplate.go              # Core engine
+├── mangotemplate_functions.go    # Built-in functions
+├── MANGOTEMPLATE_DOCUMENTATION.md # Full documentation
+├── QUICKSTART_MANGO.md           # Quick start guide
+├── examples.go                   # Practical examples
+├── example_templates.mango       # Template examples
+└── README.md                     # This file
 ```
 
 ---
 
-## 🚫 What MangoTemplate is NOT
+## 🚦 Getting Started
 
-- A full‑featured template engine (use `html/template` for that)
-- A regex‑based monster – it’s a simple state machine
-- A tool for complex logic – keep logic in Go, keep templates dumb
-
----
-
-## 🧪 Running the example
-
-```bash
-cd example
-go run main.go
-```
-
----
-
-## 📄 License
-
-MIT – see [LICENSE](LICENSE) file.
+1. **[Quick Start Guide](QUICKSTART_MANGO.md)** - 5-minute setup
+2. **[Full Documentation](MANGOTEMPLATE_DOCUMENTATION.md)** - Complete reference
+3. **[Examples](examples.go)** - 10 practical examples
+4. **[Template Examples](example_templates.mango)** - Template samples
 
 ---
 
 ## 🤝 Contributing
 
-Keep it minimal. Keep it simple. Open an issue or PR if you have an idea that fits the v1 spirit.
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
 
 ---
 
-**Built with 🥭 for Go developers who want just enough templating.**
+## 📝 License
+
+MIT License - feel free to use in any project
+
+---
+
+## 🎉 What's Next?
+
+- [ ] Support for template inheritance
+- [ ] Caching strategies (memory, file, Redis)
+- [ ] Whitespace control
+- [ ] Macro/snippet support
+- [ ] Template includes with parameters
+- [ ] Better error messages with line numbers
+- [ ] Performance optimizations
+- [ ] CLI tool for template testing
+
+---
+
+## ❓ FAQ
+
+### Q: Can I use Go code in templates?
+**A:** Yes! Use `<go>` tags for Go code and template syntax.
+
+### Q: Is it production-ready?
+**A:** Yes! MangoTemplate is designed for production use.
+
+### Q: How does it compare to Go's `html/template`?
+**A:** MangoTemplate provides a PHP-like interface over `text/template`, making it more familiar to web developers.
+
+### Q: Can I register custom functions?
+**A:** Absolutely! Use `RegisterFunc()` to add your own functions.
+
+### Q: What about security?
+**A:** Built-in HTML escaping and type safety. Use `safe` for trusted content.
+
+### Q: How's performance?
+**A:** Excellent! Automatic caching and minimal overhead.
+
+---
+
+## 📞 Support
+
+For issues, questions, or suggestions:
+- Open an issue on GitHub
+- Check documentation first
+- See examples for common patterns
+
+---
+
+## 🌟 Why MangoTemplate?
+
+```
+┌─────────────────────────────────────────────┐
+│  Feature          │  MangoTemplate  │  Text/Template
+├──────────────────┼─────────────────┼─────────────┤
+│  Familiar syntax  │  ✅ PHP-like    │  ✗ Complex
+│  <go> tags       │  ✅ Yes         │  ✗ No
+│  Built-in funcs  │  ✅ 50+         │  ✓ Basic
+│  Caching         │  ✅ Auto        │  ✗ Manual
+│  Easy to learn   │  ✅ Yes         │  ✗ Steep
+│  Production use  │  ✅ Yes         │  ✓ Yes
+└─────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Ready?
+
+```go
+import "github.com/AlexanderXinaxrZenDev/mangotemplate"
+
+engine := mangotemplate.NewEngine("./templates")
+engine.RegisterBuiltinFunctions()
+
+// Start building!
+```
+
+---
+
+**Happy templating! 🥭✨**
+
+Made with ❤️ for Go developers who love the web
