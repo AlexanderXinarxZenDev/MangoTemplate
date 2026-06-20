@@ -54,7 +54,7 @@ MangoTemplate is a templating library for Go that supports `.mango` and `.html` 
 ### 1. Install
 
 ```bash
-go get github.com/AlexanderXinaxrZenDev/mangotemplate
+go get github.com/AlexanderXinaxrZenDev/mango_template/src
 ```
 
 ### 2. Create a Template
