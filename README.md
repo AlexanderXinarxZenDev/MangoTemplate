@@ -1,4 +1,4 @@
-# MangoTemplate 🥭 [1.9]
+# MangoTemplate 🥭 [1.9.5]
 
 A powerful, PHP-like templating engine for Go that brings familiar web templating paradigms to the Go ecosystem.
 
